@@ -7,6 +7,13 @@ import { publicMediaUrl } from "@/lib/storage";
 import type { AlbumWithCount } from "@/lib/types";
 
 export function AlbumCard({ album }: { album: AlbumWithCount }) {
+  const photosLabel = `${album.media_count} ${
+    album.media_count === 1 ? "foto" : "fotos"
+  }`;
+  const subtitle = album.country_name
+    ? `${album.country_name} · ${photosLabel}`
+    : photosLabel;
+
   return (
     <motion.div
       variants={{
@@ -47,8 +54,7 @@ export function AlbumCard({ album }: { album: AlbumWithCount }) {
             {album.name}
           </p>
           <p className="mt-0.5 truncate text-xs text-blanco/75 sm:text-sm">
-            {album.country_name} · {album.media_count}{" "}
-            {album.media_count === 1 ? "foto" : "fotos"}
+            {subtitle}
           </p>
         </div>
       </Link>
