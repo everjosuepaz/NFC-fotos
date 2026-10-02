@@ -10,7 +10,7 @@ export function AlbumGrid({ albums }: { albums: AlbumWithCount[] }) {
     return (
       <EmptyState
         title="Todavía no hay álbumes"
-        description="Crea el primero y empieza a guardar recuerdos de los lugares que pasen por aquí."
+        description="Crea el primero y empieza a guardar los momentos que quieras recordar."
       />
     );
   }
@@ -31,3 +31,4 @@ export function AlbumGrid({ albums }: { albums: AlbumWithCount[] }) {
     </motion.div>
   );
 }
+
