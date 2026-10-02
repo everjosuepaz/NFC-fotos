@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { DEFAULT_ALBUM_EMOJI, isValidAlbumEmoji } from "@/lib/album-emojis";
-import { countryNameFromCode } from "@/lib/countries";
+import { COUNTRIES, countryNameFromCode } from "@/lib/countries";
 import { randomSuffix, slugify } from "@/lib/slug";
 import { createClient } from "@/lib/supabase/server";
 import { MEDIA_BUCKET } from "@/lib/storage";
@@ -17,14 +17,11 @@ export async function createAlbum(
   formData: FormData,
 ): Promise<CreateAlbumState> {
   const name = String(formData.get("name") ?? "").trim();
-  const countryCode = String(formData.get("country_code") ?? "").trim();
+  const countryInput = String(formData.get("country_code") ?? "").trim();
   const emojiInput = String(formData.get("emoji") ?? "").trim();
 
   if (!name) {
     return { error: "Ponle un nombre al álbum." };
-  }
-  if (!countryCode) {
-    return { error: "Elige un país." };
   }
   if (!emojiInput) {
     return { error: "Elige un emoji para el álbum." };
@@ -32,8 +29,13 @@ export async function createAlbum(
 
   const emoji = isValidAlbumEmoji(emojiInput) ? emojiInput : DEFAULT_ALBUM_EMOJI;
 
-  const countryName = countryNameFromCode(countryCode);
-  const baseSlug = slugify(name) || slugify(countryName) || "album";
+  // El país es opcional: solo se guarda si es un código de la lista.
+  const countryCode = COUNTRIES.some((c) => c.code === countryInput)
+    ? countryInput
+    : null;
+  const countryName = countryCode ? countryNameFromCode(countryCode) : null;
+
+  const baseSlug = slugify(name) || "album";
 
   const supabase = await createClient();
 
@@ -92,3 +94,4 @@ export async function deleteAlbum(albumId: string, slug: string) {
   revalidatePath(`/album/${slug}`);
   redirect("/app");
 }
+
