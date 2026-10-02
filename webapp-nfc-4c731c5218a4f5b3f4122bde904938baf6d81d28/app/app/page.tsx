@@ -13,7 +13,7 @@ export default async function AppHome() {
           <BrandLockup size="lg" showTagline href="/app" />
           <p className="max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
             Abre el mapa de tus mejores momentos. Cada álbum guarda las
-            fotos de un lugar que ha pasado por aquí.
+            fotos de un viaje, una salida o un día que quieras recordar.
           </p>
         </div>
         <div className="w-full shrink-0 sm:w-auto">
