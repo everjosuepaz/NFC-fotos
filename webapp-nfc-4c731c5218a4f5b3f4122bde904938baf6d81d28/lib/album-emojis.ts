@@ -1,4 +1,5 @@
-// Lista curada de emojis de viaje/álbum para elegir al crear un álbum.
+// Lista curada de emojis para elegir al crear o editar un álbum.
+// Mezcla viajes y momentos del día a día (parque, cumpleaños, familia...).
 export const ALBUM_EMOJIS: string[] = [
   "📷",
   "✈️",
@@ -32,6 +33,25 @@ export const ALBUM_EMOJIS: string[] = [
   "🍜",
   "❤️",
   "⭐",
+  // Momentos del día a día
+  "🌳",
+  "🏞️",
+  "🛝",
+  "🧺",
+  "☀️",
+  "🚲",
+  "⚽",
+  "🐶",
+  "👨‍👩‍👧",
+  "🎂",
+  "🎉",
+  "🎈",
+  "🎓",
+  "🍕",
+  "🍦",
+  "🎶",
+  "🏡",
+  "💼",
 ];
 
 export const DEFAULT_ALBUM_EMOJI = ALBUM_EMOJIS[0];
