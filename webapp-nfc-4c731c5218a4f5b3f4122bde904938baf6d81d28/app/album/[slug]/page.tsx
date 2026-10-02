@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AlbumWelcome } from "@/components/album-welcome";
 import { BrandLockup } from "@/components/brand-lockup";
 import { DeleteAlbumButton } from "@/components/delete-album-button";
+import { EditAlbumButton } from "@/components/edit-album-button";
 import { PhotoGrid } from "@/components/photo-grid";
 import { UploadButton } from "@/components/upload-button";
 import { getAlbumBySlug } from "@/lib/albums";
@@ -42,13 +43,22 @@ export default async function AlbumPage(
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-bosque">
-                {album.emoji} {album.country_name}
+                {album.emoji}
+                {album.country_name ? ` ${album.country_name}` : ""}
               </p>
               <h1 className="mt-2 break-words text-[clamp(1.75rem,6vw,3rem)] font-semibold leading-tight text-foreground">
                 {album.name}
               </h1>
+              {album.description ? (
+                <p className="mt-3 max-w-xl whitespace-pre-line break-words text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  {album.description}
+                </p>
+              ) : null}
             </div>
-            <DeleteAlbumButton albumId={album.id} slug={album.slug} />
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <EditAlbumButton album={album} />
+              <DeleteAlbumButton albumId={album.id} slug={album.slug} />
+            </div>
           </div>
         </div>
 
