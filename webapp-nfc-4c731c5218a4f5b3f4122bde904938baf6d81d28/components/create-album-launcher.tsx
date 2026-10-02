@@ -82,7 +82,7 @@ export function CreateAlbumLauncher() {
                       Nuevo álbum
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Emoji, nombre y país. Los tres son obligatorios.
+                      Elige un emoji y ponle el nombre que quieras. El país es opcional.
                     </p>
                   </div>
                   <button
@@ -144,7 +144,7 @@ export function CreateAlbumLauncher() {
                         maxLength={80}
                         autoComplete="off"
                         enterKeyHint="next"
-                        placeholder="Ej. Verano en Kioto"
+                        placeholder="Ej. Salida al parque"
                         className="h-12 min-h-[44px] w-full rounded-xl border border-surface-border bg-arena px-4 text-base text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-tierra"
                       />
                     </div>
@@ -154,21 +154,18 @@ export function CreateAlbumLauncher() {
                         htmlFor="country_code"
                         className="text-xs font-medium uppercase tracking-wide text-muted-foreground"
                       >
-                        País
+                        País (opcional)
                       </label>
                       <select
                         id="country_code"
                         name="country_code"
-                        required
                         defaultValue=""
                         className="h-12 min-h-[44px] w-full appearance-none rounded-xl border border-surface-border bg-arena bg-[length:1rem] bg-[right_1rem_center] bg-no-repeat px-4 pr-10 text-base text-foreground outline-none focus:border-tierra"
                         style={{
                           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%237d766f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E")`,
                         }}
                       >
-                        <option value="" disabled>
-                          Selecciona un país
-                        </option>
+                        <option value="">Sin país</option>
                         {COUNTRIES.map((country) => (
                           <option key={country.code} value={country.code}>
                             {country.name}
@@ -212,3 +209,4 @@ export function CreateAlbumLauncher() {
     </>
   );
 }
+
