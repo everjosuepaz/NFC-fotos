@@ -2,8 +2,9 @@ export type Album = {
   id: string;
   name: string;
   emoji: string;
-  country_code: string;
-  country_name: string;
+  country_code: string | null;
+  country_name: string | null;
+  description: string | null;
   slug: string;
   cover_path: string | null;
   created_at: string;
