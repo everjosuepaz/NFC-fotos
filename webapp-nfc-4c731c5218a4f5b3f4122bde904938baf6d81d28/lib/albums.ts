@@ -53,4 +53,3 @@ export async function getAlbumBySlug(spaceId: string, slug: string) {
     return null;
   }
 }
-
