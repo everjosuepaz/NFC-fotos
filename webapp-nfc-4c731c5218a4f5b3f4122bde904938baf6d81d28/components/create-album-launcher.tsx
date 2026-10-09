@@ -8,7 +8,7 @@ import { COUNTRIES } from "@/lib/countries";
 
 const initialState: CreateAlbumState = { error: null };
 
-export function CreateAlbumLauncher() {
+export function CreateAlbumLauncher({ code }: { code: string }) {
   const [open, setOpen] = useState(false);
   const [emoji, setEmoji] = useState(DEFAULT_ALBUM_EMOJI);
   const [state, formAction, pending] = useActionState(
@@ -103,6 +103,7 @@ export function CreateAlbumLauncher() {
               >
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
                   <input type="hidden" name="emoji" value={emoji} />
+                  <input type="hidden" name="space_code" value={code} />
 
                   <div className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1.5">
