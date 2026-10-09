@@ -6,7 +6,13 @@ import { motion } from "motion/react";
 import { publicMediaUrl } from "@/lib/storage";
 import type { AlbumWithCount } from "@/lib/types";
 
-export function AlbumCard({ album }: { album: AlbumWithCount }) {
+export function AlbumCard({
+  album,
+  code,
+}: {
+  album: AlbumWithCount;
+  code: string;
+}) {
   const photosLabel = `${album.media_count} ${
     album.media_count === 1 ? "foto" : "fotos"
   }`;
@@ -25,7 +31,7 @@ export function AlbumCard({ album }: { album: AlbumWithCount }) {
       className="h-full"
     >
       <Link
-        href={`/album/${album.slug}`}
+        href={`/s/${code}/album/${album.slug}`}
         className="group relative block aspect-[4/5] w-full overflow-hidden rounded-3xl border border-surface-border bg-surface shadow-sm shadow-piedra/10 transition-transform duration-150 hover:border-tierra/50 hover:shadow-tierra/15 active:scale-[0.98]"
       >
         {album.cover_path ? (
