@@ -10,7 +10,13 @@ import type { Album } from "@/lib/types";
 const NAME_MAX = 80;
 const DESCRIPTION_MAX = 280;
 
-export function EditAlbumButton({ album }: { album: Album }) {
+export function EditAlbumButton({
+  code,
+  album,
+}: {
+  code: string;
+  album: Album;
+}) {
   const router = useRouter();
   const titleId = useId();
   const [open, setOpen] = useState(false);
@@ -43,8 +49,8 @@ export function EditAlbumButton({ album }: { album: Album }) {
     setError(null);
     startTransition(async () => {
       const result = await updateAlbum({
+        code,
         albumId: album.id,
-        slug: album.slug,
         name,
         emoji,
         description,
