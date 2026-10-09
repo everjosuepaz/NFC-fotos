@@ -1,21 +1,20 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { registerMedia } from "@/app/actions/media";
+import { createUploadUrl, registerMedia } from "@/app/actions/media";
 import { createClient } from "@/lib/supabase/client";
 import {
   ACCEPTED_IMAGE_TYPES,
   MAX_IMAGE_BYTES,
   MEDIA_BUCKET,
-  extensionFromMimeType,
 } from "@/lib/storage";
 
 type UploadButtonProps = {
+  code: string;
   albumId: string;
-  slug: string;
 };
 
-export function UploadButton({ albumId, slug }: UploadButtonProps) {
+export function UploadButton({ code, albumId }: UploadButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<{
@@ -50,20 +49,24 @@ export function UploadButton({ albumId, slug }: UploadButtonProps) {
     const supabase = createClient();
 
     for (const file of validFiles) {
-      const ext = extensionFromMimeType(file.type);
-      const path = `${albumId}/${crypto.randomUUID()}.${ext}`;
+      try {
+        // 1) El servidor verifica el espacio y entrega una URL firmada.
+        const { path, token } = await createUploadUrl(
+          code,
+          albumId,
+          file.type,
+        );
 
-      const { error: uploadError } = await supabase.storage
-        .from(MEDIA_BUCKET)
-        .upload(path, file, { contentType: file.type });
+        // 2) El navegador sube la foto directo a Storage con esa URL.
+        const { error: uploadError } = await supabase.storage
+          .from(MEDIA_BUCKET)
+          .uploadToSignedUrl(path, token, file, { contentType: file.type });
 
-      if (!uploadError) {
-        try {
-          await registerMedia(albumId, slug, path, file.type);
-        } catch {
-          setError("Alguna foto no se pudo guardar. Inténtalo de nuevo.");
-        }
-      } else {
+        if (uploadError) throw uploadError;
+
+        // 3) El servidor registra la foto en la base de datos.
+        await registerMedia(code, albumId, path, file.type);
+      } catch {
         setError("Alguna foto no se pudo guardar. Inténtalo de nuevo.");
       }
 
@@ -106,3 +109,4 @@ export function UploadButton({ albumId, slug }: UploadButtonProps) {
     </div>
   );
 }
+
