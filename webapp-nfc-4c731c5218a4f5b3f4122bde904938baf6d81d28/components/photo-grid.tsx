@@ -13,11 +13,11 @@ import type { Media } from "@/lib/types";
 type PhotoGridProps = {
   media: Media[];
   albumId: string;
-  slug: string;
+  code: string;
   coverPath: string | null;
 };
 
-export function PhotoGrid({ media, albumId, slug, coverPath }: PhotoGridProps) {
+export function PhotoGrid({ media, albumId, code, coverPath }: PhotoGridProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [direction, setDirection] = useState(0);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export function PhotoGrid({ media, albumId, slug, coverPath }: PhotoGridProps) {
     const deleteIndex = media.findIndex((m) => m.id === item.id);
 
     startTransition(async () => {
-      await deleteMedia(item.id, item.storage_path, albumId, slug);
+      await deleteMedia(code, albumId, item.id);
       setConfirmingId(null);
 
       const remaining = media.length - 1;
@@ -57,7 +57,7 @@ export function PhotoGrid({ media, albumId, slug, coverPath }: PhotoGridProps) {
 
   function handleSetCover(item: Media) {
     startCoverTransition(async () => {
-      await setAlbumCover(albumId, item.storage_path, slug);
+      await setAlbumCover(code, albumId, item.storage_path);
       setJustSetCover(true);
       setTimeout(() => setJustSetCover(false), 1800);
     });
@@ -143,3 +143,4 @@ export function PhotoGrid({ media, albumId, slug, coverPath }: PhotoGridProps) {
     </>
   );
 }
+
