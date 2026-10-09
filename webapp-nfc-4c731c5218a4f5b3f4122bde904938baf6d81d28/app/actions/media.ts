@@ -1,19 +1,63 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-import { MEDIA_BUCKET } from "@/lib/storage";
+import { requireAlbumInSpace } from "@/lib/space";
+import {
+  ACCEPTED_IMAGE_TYPES,
+  MEDIA_BUCKET,
+  extensionFromMimeType,
+} from "@/lib/storage";
 
-export async function registerMedia(
+function revalidateAlbum(code: string, slug: string) {
+  revalidatePath(`/s/${code}`);
+  revalidatePath(`/s/${code}/album/${slug}`);
+}
+
+// Paso 1 de la subida: el servidor verifica el espacio y entrega una URL
+// firmada de un solo uso. El navegador sube la foto directo a Storage con ella,
+// sin necesitar permisos de escritura abiertos.
+export async function createUploadUrl(
+  code: string,
   albumId: string,
-  slug: string,
+  mimeType: string,
+): Promise<{ path: string; token: string }> {
+  if (!ACCEPTED_IMAGE_TYPES.includes(mimeType)) {
+    throw new Error("Tipo de archivo no permitido.");
+  }
+
+  const { admin, album } = await requireAlbumInSpace(code, albumId);
+
+  const path = `${album.id}/${crypto.randomUUID()}.${extensionFromMimeType(mimeType)}`;
+  const { data, error } = await admin.storage
+    .from(MEDIA_BUCKET)
+    .createSignedUploadUrl(path);
+
+  if (error || !data) {
+    throw new Error("No se pudo preparar la subida.");
+  }
+
+  return { path, token: data.token };
+}
+
+// Paso 2: registrar la foto en la base de datos una vez subida.
+export async function registerMedia(
+  code: string,
+  albumId: string,
   storagePath: string,
   mimeType: string,
 ) {
-  const supabase = await createClient();
+  const { admin, space, album } = await requireAlbumInSpace(code, albumId);
 
-  const { error } = await supabase.from("media").insert({
-    album_id: albumId,
+  // La ruta debe pertenecer a este álbum: evita registrar archivos ajenos.
+  if (!storagePath.startsWith(`${album.id}/`) || storagePath.includes("..")) {
+    throw new Error("Ruta de foto no válida.");
+  }
+  if (!ACCEPTED_IMAGE_TYPES.includes(mimeType)) {
+    throw new Error("Tipo de archivo no permitido.");
+  }
+
+  const { error } = await admin.from("media").insert({
+    album_id: album.id,
     storage_path: storagePath,
     mime_type: mimeType,
   });
@@ -22,75 +66,81 @@ export async function registerMedia(
     throw new Error("No se pudo guardar la foto.");
   }
 
-  const { data: album } = await supabase
-    .from("albums")
-    .select("cover_path")
-    .eq("id", albumId)
-    .single();
-
-  if (album && !album.cover_path) {
-    await supabase
+  if (!album.cover_path) {
+    await admin
       .from("albums")
       .update({ cover_path: storagePath })
-      .eq("id", albumId);
+      .eq("id", album.id);
   }
 
-  revalidatePath("/app");
-  revalidatePath(`/album/${slug}`);
+  revalidateAlbum(space.code, album.slug);
 }
 
 export async function setAlbumCover(
+  code: string,
   albumId: string,
   storagePath: string,
-  slug: string,
 ) {
-  const supabase = await createClient();
+  const { admin, space, album } = await requireAlbumInSpace(code, albumId);
 
-  const { error } = await supabase
+  // Solo se puede poner como portada una foto de este mismo álbum.
+  const { data: photo } = await admin
+    .from("media")
+    .select("id")
+    .eq("album_id", album.id)
+    .eq("storage_path", storagePath)
+    .maybeSingle();
+
+  if (!photo) {
+    throw new Error("Esa foto no pertenece al álbum.");
+  }
+
+  const { error } = await admin
     .from("albums")
     .update({ cover_path: storagePath })
-    .eq("id", albumId);
+    .eq("id", album.id);
 
   if (error) {
     throw new Error("No se pudo actualizar la portada.");
   }
 
-  revalidatePath("/app");
-  revalidatePath(`/album/${slug}`);
+  revalidateAlbum(space.code, album.slug);
 }
 
 export async function deleteMedia(
-  mediaId: string,
-  storagePath: string,
+  code: string,
   albumId: string,
-  slug: string,
+  mediaId: string,
 ) {
-  const supabase = await createClient();
+  const { admin, space, album } = await requireAlbumInSpace(code, albumId);
 
-  await supabase.storage.from(MEDIA_BUCKET).remove([storagePath]);
-  await supabase.from("media").delete().eq("id", mediaId);
+  // La ruta se lee de la base de datos, no se confía en lo que manda el navegador.
+  const { data: photo } = await admin
+    .from("media")
+    .select("id, storage_path")
+    .eq("id", mediaId)
+    .eq("album_id", album.id)
+    .maybeSingle();
 
-  const { data: album } = await supabase
-    .from("albums")
-    .select("cover_path")
-    .eq("id", albumId)
-    .single();
+  if (!photo) return;
 
-  if (album && album.cover_path === storagePath) {
-    const { data: nextMedia } = await supabase
+  await admin.storage.from(MEDIA_BUCKET).remove([photo.storage_path]);
+  await admin.from("media").delete().eq("id", photo.id);
+
+  if (album.cover_path === photo.storage_path) {
+    const { data: nextMedia } = await admin
       .from("media")
       .select("storage_path")
-      .eq("album_id", albumId)
+      .eq("album_id", album.id)
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
 
-    await supabase
+    await admin
       .from("albums")
       .update({ cover_path: nextMedia?.storage_path ?? null })
-      .eq("id", albumId);
+      .eq("id", album.id);
   }
 
-  revalidatePath("/app");
-  revalidatePath(`/album/${slug}`);
+  revalidateAlbum(space.code, album.slug);
 }
