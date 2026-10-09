@@ -2,7 +2,7 @@ const STEPS = [
   {
     n: "01",
     title: "Pega la pegatina",
-    body: "Coloca la pegatina NFC en el imán de un destino que quieras recordar.",
+    body: "Coloca la pegatina NFC en un imán, un llavero o lo que quieras ligar a un recuerdo.",
   },
   {
     n: "02",
@@ -12,7 +12,7 @@ const STEPS = [
   {
     n: "03",
     title: "Guarda las fotos",
-    body: "Crea álbumes por país y añade recuerdos desde la cámara o la galería.",
+    body: "Crea un álbum con el nombre que quieras (“Salida al parque”, “Cumpleaños de Sofi”) y añade fotos desde la cámara o la galería.",
   },
 ] as const;
 
