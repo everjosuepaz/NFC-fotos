@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { DEFAULT_ALBUM_EMOJI, isValidAlbumEmoji } from "@/lib/album-emojis";
 import { COUNTRIES, countryNameFromCode } from "@/lib/countries";
 import { randomSuffix, slugify } from "@/lib/slug";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAlbumInSpace, getSpaceByCode } from "@/lib/space";
 import { MEDIA_BUCKET } from "@/lib/storage";
 
 export type CreateAlbumState = {
@@ -16,10 +17,15 @@ export async function createAlbum(
   _prevState: CreateAlbumState,
   formData: FormData,
 ): Promise<CreateAlbumState> {
+  const spaceCode = String(formData.get("space_code") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
   const countryInput = String(formData.get("country_code") ?? "").trim();
   const emojiInput = String(formData.get("emoji") ?? "").trim();
 
+  const space = await getSpaceByCode(spaceCode);
+  if (!space) {
+    return { error: "Este espacio no existe. Escanea tu pegatina de nuevo." };
+  }
   if (!name) {
     return { error: "Ponle un nombre al álbum." };
   }
@@ -37,14 +43,15 @@ export async function createAlbum(
 
   const baseSlug = slugify(name) || "album";
 
-  const supabase = await createClient();
+  const admin = createAdminClient();
 
   let slug = baseSlug;
   let attempt = 0;
   let insertedSlug: string | null = null;
 
   while (attempt < 5 && !insertedSlug) {
-    const { error } = await supabase.from("albums").insert({
+    const { error } = await admin.from("albums").insert({
+      space_id: space.id,
       name,
       emoji,
       country_code: countryCode,
@@ -70,28 +77,27 @@ export async function createAlbum(
     return { error: "No se pudo crear el álbum. Inténtalo de nuevo." };
   }
 
-  revalidatePath("/app");
-  redirect(`/album/${insertedSlug}`);
+  revalidatePath(`/s/${space.code}`);
+  redirect(`/s/${space.code}/album/${insertedSlug}`);
 }
 
-export async function deleteAlbum(albumId: string, slug: string) {
-  const supabase = await createClient();
+export async function deleteAlbum(code: string, albumId: string) {
+  const { admin, space, album } = await requireAlbumInSpace(code, albumId);
 
-  const { data: mediaRows } = await supabase
+  const { data: mediaRows } = await admin
     .from("media")
     .select("storage_path")
-    .eq("album_id", albumId);
+    .eq("album_id", album.id);
 
   if (mediaRows && mediaRows.length > 0) {
-    await supabase.storage
+    await admin.storage
       .from(MEDIA_BUCKET)
-      .remove(mediaRows.map((m) => m.storage_path));
+      .remove(mediaRows.map((m: { storage_path: string }) => m.storage_path));
   }
 
-  await supabase.from("albums").delete().eq("id", albumId);
+  await admin.from("albums").delete().eq("id", album.id);
 
-  revalidatePath("/app");
-  revalidatePath(`/album/${slug}`);
-  redirect("/app");
+  revalidatePath(`/s/${space.code}`);
+  revalidatePath(`/s/${space.code}/album/${album.slug}`);
+  redirect(`/s/${space.code}`);
 }
-
