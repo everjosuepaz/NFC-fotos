@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { BrandLockup } from "@/components/brand-lockup";
 
 export function LandingHero() {
@@ -12,12 +11,9 @@ export function LandingHero() {
           álbum vivo de fotos para revivir en cualquier instante.
         </p>
 
-        <Link
-          href="/app"
-          className="inline-flex h-12 min-h-[44px] w-full items-center justify-center rounded-full bg-tierra px-8 text-base font-semibold text-blanco shadow-sm shadow-piedra/15 transition-transform duration-150 hover:scale-[1.02] active:scale-95 sm:w-auto sm:text-sm"
-        >
-          Acceder a Album NFC
-        </Link>
+        <p className="inline-flex min-h-[44px] items-center rounded-full border border-surface-border bg-blanco px-5 text-sm font-medium text-foreground shadow-sm shadow-piedra/5">
+          Para entrar, acerca tu pegatina NFC al móvil
+        </p>
       </div>
     </section>
   );
