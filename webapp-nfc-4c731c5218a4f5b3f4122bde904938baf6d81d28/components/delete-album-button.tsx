@@ -5,11 +5,11 @@ import { deleteAlbum } from "@/app/actions/albums";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 
 export function DeleteAlbumButton({
+  code,
   albumId,
-  slug,
 }: {
+  code: string;
   albumId: string;
-  slug: string;
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -31,7 +31,7 @@ export function DeleteAlbumButton({
         pending={isPending}
         onConfirm={() =>
           startTransition(async () => {
-            await deleteAlbum(albumId, slug);
+            await deleteAlbum(code, albumId);
           })
         }
         onCancel={() => setOpen(false)}
