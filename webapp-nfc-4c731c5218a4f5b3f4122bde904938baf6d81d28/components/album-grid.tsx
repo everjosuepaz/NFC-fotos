@@ -5,7 +5,13 @@ import { AlbumCard } from "@/components/album-card";
 import { EmptyState } from "@/components/empty-state";
 import type { AlbumWithCount } from "@/lib/types";
 
-export function AlbumGrid({ albums }: { albums: AlbumWithCount[] }) {
+export function AlbumGrid({
+  albums,
+  code,
+}: {
+  albums: AlbumWithCount[];
+  code: string;
+}) {
   if (albums.length === 0) {
     return (
       <EmptyState
@@ -26,9 +32,8 @@ export function AlbumGrid({ albums }: { albums: AlbumWithCount[] }) {
       }}
     >
       {albums.map((album) => (
-        <AlbumCard key={album.id} album={album} />
+        <AlbumCard key={album.id} album={album} code={code} />
       ))}
     </motion.div>
   );
 }
-
